@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAINSHIELD — Realistic AI Flood Early Warning & Risk Monitoring</title>
+<style>
+:root{--bg:#06131d;--panel:#0b202d;--panel2:#0e2a38;--line:#164456;--text:#e8f6f7;--muted:#8caab5;--cyan:#28d7d0;--green:#58e39b;--yellow:#ffc857;--orange:#ff8a3d;--red:#ff3b62}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 75% 0,#12384a 0,#06131d 38%);color:var(--text);font:14px Inter,Segoe UI,Arial,sans-serif}
+button{font:inherit;color:inherit}.app{display:flex;min-height:100vh}.side{width:235px;background:#061822;border-right:1px solid var(--line);padding:20px 14px;position:fixed;inset:0 auto 0 0}.brand{font-size:22px;font-weight:800;color:var(--cyan);padding:6px 12px 22px}.brand span{color:#fff}.tag{font-size:11px;color:var(--muted);margin-top:3px}.nav{display:grid;gap:7px}.nav button{border:0;background:transparent;text-align:left;padding:12px;border-radius:10px;cursor:pointer}.nav button:hover,.nav button.active{background:#0d5268;box-shadow:inset 3px 0 var(--cyan)}.main{margin-left:235px;width:calc(100% - 235px);padding:20px 18px 30px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.top h1{margin:0;font-size:22px}.pill{padding:7px 11px;border-radius:20px;background:#44152a;color:#ff9fb3;border:1px solid #8e2948}.grid{display:grid;gap:14px}.kpis{grid-template-columns:repeat(5,1fr)}.card{background:linear-gradient(180deg,#0b2533,#081c28);border:1px solid var(--line);border-radius:14px;padding:15px;box-shadow:0 12px 35px #0005}.kpi .n{font-size:26px;font-weight:800;margin:7px 0}.muted{color:var(--muted)}.cyan{color:var(--cyan)}.red{color:var(--red)}.green{color:var(--green)}.yellow{color:var(--yellow)}.orange{color:var(--orange)}
+.layout{grid-template-columns:1.65fr 1fr}.map{height:420px;position:relative;overflow:hidden;background:linear-gradient(140deg,#173d35,#08252e 45%,#172b38);}.terrain{position:absolute;inset:0;opacity:.55;background-image:linear-gradient(25deg,transparent 40%,#2b7562 41%,transparent 43%),linear-gradient(145deg,transparent 50%,#174e43 51%,transparent 53%),repeating-linear-gradient(165deg,transparent 0 38px,#22584d 39px 40px)}.map .region{position:absolute;inset:50px 90px 40px 75px;border:2px solid #64d6b3;border-radius:45% 55% 40% 60%;transform:rotate(-7deg);box-shadow:0 0 55px #18cda055}.zone{position:absolute;border-radius:50%;padding:9px 12px;border:1px solid #ffffff55;background:#071821dd;font-weight:700;cursor:pointer}.z1{left:27%;top:25%;color:#fff;border-color:#ff3b62;box-shadow:0 0 30px #ff3b6255}.z2{left:52%;top:37%;color:#fff;border-color:#ffc857}.z3{left:39%;top:63%;color:#fff;border-color:#58e39b}.legend{position:absolute;right:12px;top:12px;background:#071821e8;padding:12px;border-radius:10px;display:grid;gap:7px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px}.redbg{background:var(--red)}.yb{background:var(--yellow)}.gb{background:var(--green)}
+.risk{display:flex;gap:14px;align-items:center}.ring{width:120px;height:120px;border-radius:50%;background:conic-gradient(var(--red) 0 78%,#173340 78%);display:grid;place-items:center}.ring:after{content:"";width:88px;height:88px;border-radius:50%;background:#091b26}.ring b{position:absolute;font-size:26px}.bar{height:9px;border-radius:8px;background:#16323f;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--red))}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.actions{display:grid;gap:9px;margin-top:10px}.action{padding:10px;border-radius:9px;background:#0a2b36;border:1px solid #174a59}.action b{color:var(--green)}.chart{height:190px;display:flex;align-items:end;gap:12px;padding:15px 5px}.barcol{flex:1;background:linear-gradient(180deg,var(--red),#71324c);border-radius:7px 7px 0 0;position:relative}.barcol span{position:absolute;top:-22px;width:100%;text-align:center}.feed{display:grid;gap:9px}.feed div{padding:10px;border-left:3px solid var(--cyan);background:#0a2632;border-radius:7px}.screen{display:none}.screen.active{display:block}.two{grid-template-columns:1fr 1fr}.table{width:100%;border-collapse:collapse}.table td,.table th{padding:10px;border-bottom:1px solid #173a47;text-align:left}.btn{background:#0e8ea2;border:0;border-radius:9px;padding:10px 14px;cursor:pointer}.btn.danger{background:var(--red)}.toast{position:fixed;right:25px;bottom:25px;background:#0b2734;border:1px solid var(--cyan);padding:14px 18px;border-radius:12px;display:none;box-shadow:0 10px 35px #0008}.mobile{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.phone{background:#050d13;border:7px solid #182d38;border-radius:25px;padding:16px;min-height:410px}.alertbox{background:#42182a;border:1px solid var(--red);border-radius:12px;padding:14px;margin:12px 0}.big{font-size:34px;font-weight:900}
+@media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.layout,.two{grid-template-columns:1fr}.side{width:190px}.main{margin-left:190px;width:calc(100% - 190px)}}@media(max-width:700px){.side{position:static;width:100%;height:auto}.app{display:block}.main{margin:0;width:100%}.mobile{grid-template-columns:1fr}}
+
+.upload-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+.dropzone{border:1px dashed #2a6878;border-radius:12px;padding:22px;text-align:center;background:#081e2a;cursor:pointer}
+.dropzone:hover{border-color:var(--cyan);background:#0a2632}
+.media-list{display:grid;gap:10px;margin-top:12px}
+.media-item{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid #174a59;background:#0a2632;border-radius:10px}
+.media-thumb{width:82px;height:60px;object-fit:cover;border-radius:7px;background:#06131d}
+.media-meta{min-width:0;flex:1}
+.media-meta b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.progress{height:7px;background:#16323f;border-radius:9px;overflow:hidden;margin-top:7px}.progress i{display:block;height:100%;width:0;background:var(--cyan)}
+.remove{background:#44152a;border:1px solid #8e2948;border-radius:7px;padding:6px 9px;cursor:pointer}
+@media(max-width:800px){.upload-grid{grid-template-columns:1fr}}
+
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><style>#rainshieldGIS{height:520px;border-radius:12px;overflow:hidden;border:1px solid #164456}.leaflet-popup-content-wrapper{color:#10202a}</style></head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand">◈ RAIN<span>SHIELD</span><div class="tag">AI/ML • Data Fusion · Flood · Inundation · Uncertainty</div></div>
+  <div class="nav">
+    <button class="active" onclick="show('dashboard',this)">◈ Dashboard</button>
+    <button onclick="show('map',this)">⌁ Inundation Map</button>
+    <button onclick="show('forecast',this)">◒ AI Rainfall Forecast</button>
+    <button onclick="show('sources',this)">◉ Data Sources</button>
+    <button onclick="show('reports',this)">✚ Field Reports</button>
+<button onclick="show('media',this)">📷 Upload Evidence</button>
+    <button onclick="show('response',this)">⚑ Response Center</button>
+    <button onclick="show('citizen',this)">▣ Citizen Alerts</button>
+    <button onclick="show('validation',this)">✓ Model Validation</button>
+  </div>
+</aside>
+<main class="main"><p class="muted">REALISTIC PROTOTYPE: live weather values can be fetched from Open-Meteo; risk, depth, confidence and validation values are clearly marked as demo/simulated until trained on verified historical events and connected to authoritative local feeds.</p>
+<section id="dashboard" class="screen active">
+ <div class="top"><h1>Integrated Heavy Rainfall Early Warning Command Center</h1><div><button class="btn" id="runSimulation">Start live simulation</button> <span class="pill">Demo mode · sample alerts</span></div></div>
+ <div class="grid kpis">
+  <div class="card kpi"><div class="muted">Monitored Cells</div><div class="n" id="kpiCells">24</div><div class="green">Grid/catchment based</div></div>
+  <div class="card kpi"><div class="muted">Data Quality</div><div class="n" id="kpiQuality">93%</div><div class="cyan">Demo sensor coverage</div></div>
+  <div class="card kpi"><div class="muted">High-Risk Cells</div><div class="n red" id="kpiHigh">7</div><div class="yellow">Derived per location</div></div>
+  <div class="card kpi"><div class="muted">Fused Rainfall</div><div class="n" id="kpiRain">118 mm</div><div class="red">Demo fusion until gauges/radar connected</div></div>
+  <div class="card kpi"><div class="muted">Flood Probability</div><div class="n red" id="kpiRisk">82%</div><div id="kpiBand" class="red">HIGH · 6h horizon</div></div>
+ </div>
+ <div class="card" style="margin-top:14px">
+  <div class="row"><h3>Flood-Prone Regional Monitoring</h3><span class="yellow">ASSAM + NEPAL</span></div>
+  <p class="muted">Primary prototype area: Assam, India. Example flood-prone monitoring cells: Dibrugarh, Dhemaji and Majuli. Cross-border demonstration mode: Nepal Terai lowlands and major river-basin flood corridors.</p>
+ </div>
+ <div class="grid layout" style="margin-top:14px">
+  <div class="card map">
+   <div class="terrain"></div><div class="region"></div>
+   <div class="zone z1" onclick="toast('Dibrugarh Urban Catchment: 86% inundation risk — drainage and low-lying areas on alert')">🔴 Dibrugarh<br><small>86% risk</small></div>
+   <div class="zone z2">🟡 Dhemaji<br><small>63% risk</small></div>
+   <div class="zone z3">🟢 Majuli<br><small>28% risk</small></div>
+   <div class="legend"><b>Inundation Risk</b><span><i class="dot redbg"></i>Critical</span><span><i class="dot yb"></i>Watch</span><span><i class="dot gb"></i>Low</span></div>
+  </div>
+  <div class="card">
+   <div class="row"><h3>Priority Flood Cell</h3><span class="pill" id="priorityPill">HIGH</span></div>
+   <div class="risk"><div class="ring"><b id="riskRing">82%</b></div><div><div class="muted">Dibrugarh Urban Catchment</div><h2 id="depthValue">0.7–1.3 m estimated depth</h2><div class="muted"><span id="horizonText">Next 6 hours</span> · uncertainty <b id="uncertaintyValue">±7%</b></div></div></div>
+   <hr style="border-color:#173a47"><b>Why is risk rising?</b>
+   <div class="actions">
+    <div class="action">🌧️ Satellite rainfall <b>118 mm/3h</b></div>
+    <div class="action">📡 Radar intensity <b>71 mm/h ↑</b></div>
+    <div class="action">🌡️ Station observations <b>164 mm/24h</b></div>
+    <div class="action">🧠 NWP ensemble <b>+96 mm/6h</b></div>
+    <div class="action">💧 Soil wetness <b>84% saturated</b></div>
+   </div>
+   <button class="btn danger" style="width:100%;margin-top:12px" onclick="generateWarning()">Generate Flood Warning</button>
+  </div>
+ </div>
+ 
+  <div class="card" style="margin-top:14px">
+    <h3>Realistic Data-Fusion & ML Conditions Lab</h3>
+    <p class="muted">Use live weather where available, then combine rainfall, catchment wetness, drainage, terrain and forecast forcing. The browser demo uses a transparent surrogate for the future trained ML model.</p>
+    <div class="grid two">
+      <label>Rainfall (mm / 3h)<input id="rainInput" type="number" min="0" max="300" value="118" class="action" style="width:100%;color:inherit"></label>
+      <label>Radar intensity (mm/h)<input id="radarInput" type="number" min="0" max="200" value="71" class="action" style="width:100%;color:inherit"></label>
+      <label>Soil saturation (%)<input id="soilInput" type="number" min="0" max="100" value="84" class="action" style="width:100%;color:inherit"></label>
+      <label>Drainage capacity (%)<input id="drainInput" type="number" min="0" max="100" value="82" class="action" style="width:100%;color:inherit"></label>
+      <label>Forecast rainfall (mm / 6h)<input id="forecastInput" type="number" min="0" max="250" value="96" class="action" style="width:100%;color:inherit"></label>
+       <label>River level / capacity (%)<input id="riverInput" type="number" min="0" max="150" value="78" class="action" style="width:100%;color:inherit"></label>
+       <label>Terrain / lowland exposure (%)<input id="terrainInput" type="number" min="0" max="100" value="72" class="action" style="width:100%;color:inherit"></label>
+      <label>Scenario<select id="scenarioSelect" class="action" style="width:100%;color:inherit;background:#0a2b36"><option value="custom">Custom</option><option value="heavy">Heavy rainfall</option><option value="blocked">Drain blockage</option><option value="recovery">Rain easing / recovery</option></select></label>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn" id="applyConditions">Apply conditions</button><button class="btn" id="resetConditions">Reset values</button><span id="riskLabel" class="pill">Risk: —</span></div>
+    <p id="riskExplanation" class="muted"></p>
+     <div class="grid two" style="margin-top:10px"><div class="action"><b>Calibrated probability (prototype)</b><div id="calibratedProb" class="big">82%</div></div><div class="action"><b>Prediction uncertainty</b><div id="uncertaintyBox" class="big">±7%</div></div><div class="action"><b>Expected depth</b><div id="depthBox" class="big">0.7–1.3 m</div></div><div class="action"><b>Data quality</b><div id="qualityBox" class="big">93%</div></div></div>
+  </div>
+  <div class="card" style="margin-top:14px" id="liveDataCard">
+    <div class="row"><h3>Live weather & river feed</h3><span id="feedStatus" class="pill">Not connected</span></div>
+    <p class="muted">Open-Meteo model data · internet required · forecast/model guidance, not official warnings.</p>
+    <div class="grid two">
+      <label>Monitoring location<select id="liveLocation" class="action" style="width:100%;color:inherit;background:#0a2b36">
+        <option value="27.4728,94.9120|Dibrugarh, Assam">Dibrugarh, Assam</option>
+        <option value="27.4833,94.5833|Dhemaji, Assam">Dhemaji, Assam</option>
+        <option value="26.9500,94.1667|Majuli, Assam">Majuli, Assam</option>
+        <option value="26.4525,87.2718|Biratnagar, Nepal">Biratnagar, Nepal</option>
+        <option value="27.7172,85.3240|Kathmandu, Nepal">Kathmandu, Nepal</option>
+      </select></label>
+      <div><button class="btn" id="fetchLive">Fetch live data</button><button class="btn" id="useLive" disabled>Use weather values</button></div>
+    </div>
+    <div class="grid two" style="margin-top:10px">
+      <div class="action"><b>Recent rain (6h)</b><div id="liveRain">—</div></div>
+      <div class="action"><b>Forecast rain (next 6h)</b><div id="liveForecast">—</div></div>
+      <div class="action"><b>River discharge</b><div id="liveRiver">—</div></div>
+      <div class="action"><b>Data timestamp</b><div id="liveTime">—</div></div>
+    </div><p id="liveNote" class="muted">No live values loaded. Manual scenario inputs remain active.</p>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>Scenario & historical replay lab</h3><p class="muted">Scenario replay is synthetic until verified historical event records are imported.</p><div class="row"><select id="replayScenario" class="action"><option value="monsoon">Monsoon burst</option><option value="river">River rise</option><option value="drain">Urban drainage failure</option><option value="recovery">Rainfall recovery</option></select><button class="btn" id="replayBtn">Run scenario</button><button class="btn" id="clearReplay">Clear log</button></div><div id="replayOutput" class="feed"></div></div>
+  <div class="card" style="margin-top:14px"><h3>Event log</h3><div id="eventLog" class="feed"><div>Prototype started. No official alert has been issued.</div></div></div>
+<div class="grid two" style="margin-top:14px">
+  <div class="card"><div class="row"><h3>12-Hour AI Rainfall & Inundation Forecast</h3><span class="red">Dibrugarh</span></div>
+   <div class="chart">
+    <div class="barcol" style="height:34%"><span>34</span></div><div class="barcol" style="height:46%"><span>46</span></div>
+    <div class="barcol" style="height:61%"><span>61</span></div><div class="barcol" style="height:79%"><span>79</span></div>
+    <div class="barcol" style="height:92%"><span>92</span></div><div class="barcol" style="height:72%"><span>72</span></div>
+   </div><div class="row muted"><span>Now</span><span>2h</span><span>4h</span><span>6h</span><span>8h</span><span>12h</span></div>
+  </div>
+  <div class="card"><h3>Recommended Actions</h3><div class="actions">
+   <div class="action"><b>1 · Alert</b> low-lying communities along the Brahmaputra floodplain and critical road corridors</div>
+   <div class="action"><b>2 · Monitor</b> drainage capacity, river levels and urban waterlogging</div>
+   <div class="action"><b>3 · Prepare</b> pumps, shelters and emergency response teams</div>
+   <div class="action"><b>4 · Update</b> warnings every 15 minutes as radar and observations arrive</div>
+  </div></div>
+ </div>
+</section>
+
+<section id="map" class="screen"><div class="top"><h1>Live Inundation & Rainfall Risk Map</h1><button class="btn" onclick="toast('Satellite, radar and NWP layers refreshed')">Refresh layers</button></div>
+ <div class="card" style="margin-bottom:12px"><p class="muted">Interactive GIS preview · OpenStreetMap base map. Risk pins use prototype scores; not surveyed flood boundaries.</p><div id="rainshieldGIS"></div><div class="row" style="margin-top:10px"><label><input type="checkbox" id="gisRiskLayer" checked> Risk markers</label><label><input type="checkbox" id="gisRainLayer"> Rainfall overlay (illustrative)</label></div></div><div class="card map" style="height:650px"><div class="terrain"></div><div class="region"></div>
+  <div class="zone z1">🔴 Dibrugarh<br>86%</div><div class="zone z2">🟡 Dhemaji<br>63%</div><div class="zone z3">🟢 Majuli<br>28%</div>
+  <div class="zone" style="right:18%;bottom:14%;color:#fff;border-color:#ff8a3d" onclick="toast('Nepal flood corridor selected: Terai lowlands / Rapti basin monitoring mode')">🟠 Nepal<br><small>Terai flood watch</small></div><div class="legend"><b>Layers</b><span>☑ Satellite rainfall</span><span>☑ Weather radar</span><span>☑ Rain gauges</span><span>☑ NWP forecast</span><span>☑ Rivers & drains</span><span>☑ Inundation depth</span><span>☑ Roads & shelters</span></div>
+ </div></section>
+
+<section id="forecast" class="screen"><div class="top"><h1>Explainable AI/ML Rainfall & Inundation Forecast</h1><span class="pill">Model confidence 89%</span></div>
+ <div class="grid two">
+  <div class="card"><h3>Inundation risk trajectory</h3><div class="big red">86%</div><p class="muted">Critical threshold: 70%</p><div class="bar"><div class="fill" style="width:86%"></div></div>
+   <h3>Integrated model drivers</h3><table class="table">
+    <tr><td>Radar rainfall intensity</td><td class="red">29%</td></tr>
+    <tr><td>Satellite precipitation</td><td class="red">23%</td></tr>
+    <tr><td>NWP ensemble forecast</td><td class="orange">20%</td></tr>
+    <tr><td>Observed rain + soil wetness</td><td class="yellow">16%</td></tr>
+    <tr><td>Terrain, drainage & land cover</td><td>12%</td></tr>
+   </table>
+  </div>
+  <div class="card"><h3>AI explanation</h3>
+   <p>Heavy rainfall detected by satellite and radar is consistent with station observations. NWP ensembles indicate continued precipitation, while wet antecedent conditions increase runoff and waterlogging potential.</p>
+   <div class="action"><b>Prediction:</b> 1.0–2.2 m inundation depth in identified low-lying cells during the next 6–12 hours if the forecast rainfall persists.</div>
+   <div class="action"><b>What-if:</b> If rainfall intensity drops below the drainage design threshold and catchment storage recovers, the predicted inundation footprint contracts.</div>
+   <button class="btn" onclick="toast('AI forecast briefing exported for incident command')">Export briefing</button>
+  </div>
+ </div></section>
+
+<section id="sources" class="screen"><div class="top"><h1>Integrated Data Sources</h1><button class="btn" onclick="toast('All data feeds synchronized')">Sync all feeds</button></div>
+ <div class="card"><table class="table"><tr><th>Source</th><th>Example feed</th><th>Latest value</th><th>Status</th><th>Role</th></tr>
+  <tr><td>🛰️ Satellite</td><td>Precipitation estimate</td><td>92 mm / 3h</td><td class="green">LIVE</td><td>Spatial rainfall coverage</td></tr>
+  <tr><td>📡 Weather Radar</td><td>Reflectivity / QPE</td><td>71 mm/h</td><td class="green">LIVE</td><td>Nowcasting & storm cells</td></tr>
+  <tr><td>🌡️ Observations</td><td>Automatic weather stations</td><td>164 mm / 24h</td><td class="green">186 online</td><td>Ground truth & calibration</td></tr>
+  <tr><td>☁️ NWP</td><td>Ensemble precipitation</td><td>+78 mm / 6h</td><td class="yellow">UPDATED</td><td>Future rainfall forcing</td></tr>
+  <tr><td>💧 Hydrology</td><td>River / drain levels</td><td>82% capacity</td><td class="yellow">WATCH</td><td>Runoff & inundation constraints</td></tr>
+  <tr><td>🗺️ GIS</td><td>DEM, land cover, drainage</td><td>1–10 m layers</td><td class="green">READY</td><td>Inundation propagation</td></tr>
+ </table></div></section>
+
+<section id="reports" class="screen"><div class="top"><h1>Field & Community Intelligence</h1><button class="btn" onclick="toast('Report triaged by AI: HIGH priority')">Run AI triage</button></div><div class="grid two"><div class="card"><h3>New hazard report</h3><div class="action">📷 Waterlogging reported<br><span class="muted">Rongdong · 8 min ago · GPS attached</span></div><div class="action">💧 Drain overflow reported<br><span class="muted">Mawyngnong · 31 min ago</span></div><div class="action">🪨 Road underpass inundated<br><span class="muted">Kiphere · 2 h ago</span></div></div><div class="card"><h3>AI triage</h3><div class="big red">HIGH</div><p>Report location, rainfall intensity and nearby observations indicate a potentially severe inundation hotspot.</p><button class="btn danger" onclick="toast('Field team dispatched')">Dispatch inspection team</button></div></div></section>
+
+<section id="response" class="screen"><div class="top"><h1>Response Center</h1><span class="pill">Escalation active</span></div><div class="grid two"><div class="card"><h3>Incident: Dibrugarh Urban Flood Cell</h3><div class="actions"><div class="action">✓ Low-lying area alert sent</div><div class="action">✓ City control room notified</div><div class="action">→ District emergency authority acknowledged</div><div class="action">○ State escalation ready</div></div><button class="btn danger" onclick="toast('State-level escalation triggered')">Escalate to State</button></div><div class="card"><h3>Response teams</h3><table class="table"><tr><td>Team Alpha</td><td>Rongdong</td><td class="green">On route</td></tr><tr><td>Team Bravo</td><td>Mawyngnong</td><td class="yellow">Standby</td></tr><tr><td>Medical Unit</td><td>District HQ</td><td class="green">Ready</td></tr></table></div></div></section>
+
+<section id="citizen" class="screen"><div class="top"><h1>Citizen Alert App Preview</h1><span class="muted">Offline-first · local language ready</span></div><div class="mobile">
+ <div class="phone"><b>RAINSHIELD</b><div class="alertbox"><b>🔴 FLOOD / INUNDATION ALERT</b><div class="big">86%</div><p>High inundation risk in the next 6 hours.</p><button class="btn danger" onclick="toast('Nearest safe shelter: Relief Shelter · 1.4 km')">Find Safe Shelter</button></div><p>Move away from low-lying roads, underpasses and fast-flowing water. Follow official updates.</p></div>
+ <div class="phone"><b>Report Waterlogging</b><div class="action" style="margin-top:20px">📷 Add photo/video</div><div class="action">📍 GPS: attached</div><div class="action">Water depth: 0.5–1.5 m</div><button class="btn" style="width:100%;margin-top:15px" onclick="toast('Flood report submitted — AI triage started')">Submit Report</button></div>
+ <div class="phone"><b>Safety Guide</b><div class="actions" style="margin-top:20px"><div class="action">✓ Avoid flooded roads and underpasses</div><div class="action">✓ Do not walk/drive through moving water</div><div class="action">✓ Switch off electricity in flooded areas</div><div class="action">✓ Follow official rainfall/flood alerts</div><div class="action">☎ Emergency: 112</div></div></div>
+ </div></section>
+
+<section id="media" class="screen">
+  <div class="top">
+    <h1>Evidence Upload & AI Field Intelligence</h1>
+    <div><span id="mediaCount" class="pill">0 files</span></div>
+  </div>
+
+  <div class="card">
+    <div class="upload-grid">
+      <div>
+        <h3>Upload flood evidence</h3>
+        <p class="muted">Upload photos and videos from the field. Multiple files are supported. Files stay in this browser session unless you connect a backend storage service.</p>
+        <label class="dropzone" for="mediaInput">
+          <div style="font-size:30px">📷 🎥</div>
+          <b>Click to upload images/videos</b>
+          <div class="muted">JPG, PNG, WEBP, GIF, MP4, WEBM, MOV</div>
+        </label>
+        <input id="mediaInput" type="file" accept="image/*,video/*" multiple hidden>
+        <div style="margin-top:10px">
+          <button class="btn" id="cameraBtn" type="button">📷 Camera</button>
+          <button class="btn" id="videoBtn" type="button" style="margin-left:7px">🎥 Record video</button>
+        </div>
+        <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
+        <input id="videoInput" type="file" accept="video/*" capture="environment" hidden>
+      </div>
+
+      <div>
+        <h3>Field report details</h3>
+        <input id="reportLocation" class="action" style="width:100%;color:inherit" placeholder="Location / landmark">
+        <select id="reportSeverity" class="action" style="width:100%;margin-top:9px;color:inherit;background:#0a2b36">
+          <option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option>
+        </select>
+        <textarea id="reportNotes" class="action" style="width:100%;min-height:100px;margin-top:9px;color:inherit" placeholder="Describe water depth, blocked road, drain overflow, people affected, etc."></textarea>
+        <button class="btn danger" id="submitEvidence" style="margin-top:9px;width:100%">Submit field evidence</button>
+      </div>
+    </div>
+    <div id="mediaList" class="media-list"></div>
+  </div>
+
+  <div class="grid two" style="margin-top:14px">
+    <div class="card">
+      <h3>AI triage preview</h3>
+      <div id="aiTriage" class="action">Upload evidence to start triage.</div>
+      <div class="bar" style="margin-top:12px"><div id="triageFill" class="fill" style="width:0%"></div></div>
+    </div>
+    <div class="card">
+      <h3>Submission status</h3>
+      <div id="submissionStatus" class="feed">
+        <div>Waiting for field evidence.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="validation" class="screen"><div class="top"><h1>Model Validation & Reliability</h1><span class="pill">Not yet trained on verified event archive</span></div>
+ <div class="grid two">
+  <div class="card"><h3>Validation dashboard</h3><div class="grid two">
+   <div class="action"><b>Events evaluated</b><div class="big" id="valEvents">47*</div></div>
+   <div class="action"><b>Precision</b><div class="big" id="valPrecision">87%*</div></div>
+   <div class="action"><b>Recall</b><div class="big" id="valRecall">91%*</div></div>
+   <div class="action"><b>F1 score</b><div class="big" id="valF1">89%*</div></div>
+  </div><p class="muted">*Illustrative target values for the prototype interface only. Replace with metrics calculated from a held-out historical dataset before claiming performance.</p></div>
+  <div class="card"><h3>Reliability checks</h3><div class="actions">
+   <div class="action">✓ Cross-location validation planned</div><div class="action">✓ Time-based train/test split recommended</div><div class="action">✓ Probability calibration required</div><div class="action">✓ Sensor outage stress test included</div><div class="action">✓ False-alarm and missed-event tracking</div>
+  </div></div>
+ </div>
+ <div class="card" style="margin-top:14px"><h3>Production model pipeline</h3><div class="actions"><div class="action"><b>1 · Data fusion</b> Rain gauges + satellite + radar + NWP + river/soil observations</div><div class="action"><b>2 · Feature engineering</b> 1h/3h/6h/24h/72h rainfall, antecedent wetness, terrain, drainage and river state</div><div class="action"><b>3 · ML prediction</b> Calibrated flood probability for every grid/catchment</div><div class="action"><b>4 · Hydraulic layer</b> Convert forcing into estimated inundation depth and footprint</div><div class="action"><b>5 · Decision layer</b> Uncertainty-aware warning thresholds and human verification</div></div></div>
+ </section>
+
+</main></div><div id="toast" class="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
+const state={rainfall:118,radar:71,soil:84,drain:82,forecast:96,river:78,terrain:72,running:false,interval:null,media:[],liveLocation:null};
+
+function show(id,btn){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));const target=document.getElementById(id);if(target)target.classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');if(id==='map'&&window.L&&!gisMap)setTimeout(initGIS,50);}
+function toast(t){const x=document.getElementById('toast');x.textContent=t;x.style.display='block';clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.style.display='none',3000);}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+// Transparent surrogate for the future trained ML model. It is NOT a calibrated probability.
+function modelScore(){
+  const rain=clamp(state.rainfall/160,0,1), radar=clamp(state.radar/100,0,1), soil=state.soil/100;
+  const drain=1-state.drain/100, fc=clamp(state.forecast/120,0,1), river=clamp(state.river/100,0,1), terrain=state.terrain/100;
+  const raw=(rain*.20+radar*.15+soil*.14+drain*.10+fc*.16+river*.12+terrain*.13);
+  const probability=clamp(Math.round(100*(0.05+raw*0.9)),1,99);
+  const uncertainty=clamp(Math.round(4+(100-getDataQuality())*.16+(state.forecast>100?2:0)),4,22);
+  const depth=Math.max(0,0.15+(probability/100)*1.35+(state.river/100)*0.35-(state.drain/100)*0.22);
+  return {probability,uncertainty,depth,band:probability>=70?'HIGH':probability>=45?'MODERATE':'LOW'};
+}
+function getDataQuality(){
+  let q=82;
+  if(state.liveLocation)q+=8;
+  if(state.rainfall>=0&&state.forecast>=0)q+=3;
+  if(state.river>0)q+=2;
+  return clamp(Math.round(q),50,98);
+}
+function updateModel(){
+  const m=modelScore(),q=getDataQuality();
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('kpiRisk',m.probability+'%');set('kpiBand',m.band+' · 6h horizon');set('riskRing',m.probability+'%');set('calibratedProb',m.probability+'%');set('uncertaintyBox','±'+m.uncertainty+'%');set('uncertaintyValue','±'+m.uncertainty+'%');set('qualityBox',q+'%');set('kpiQuality',q+'%');set('kpiRain',state.rainfall.toFixed(1)+' mm');
+  set('depthBox',(Math.max(0,m.depth-.3)).toFixed(1)+'–'+m.depth.toFixed(1)+' m');set('depthValue',(Math.max(0,m.depth-.3)).toFixed(1)+'–'+m.depth.toFixed(1)+' m estimated depth');
+  set('driverRain',state.rainfall.toFixed(1)+' mm/6h');set('driverRadar',state.radar.toFixed(1)+' mm/h');set('driverForecast','+'+state.forecast.toFixed(1)+' mm/6h');set('driverSoil',state.soil.toFixed(0)+'%');set('driverStation',Math.round(state.rainfall*1.35)+' mm/24h');
+  const ring=document.querySelector('.ring');if(ring){const c=m.probability>=70?'var(--red)':m.probability>=45?'var(--yellow)':'var(--green)';ring.style.background=`conic-gradient(${c} 0 ${m.probability}%,#173340 ${m.probability}%)`;}
+  const bandEl=document.getElementById('kpiBand');if(bandEl)bandEl.className=m.band==='HIGH'?'red':m.band==='MODERATE'?'yellow':'green';
+  const pill=document.getElementById('priorityPill');if(pill){pill.textContent=m.band;pill.className=m.band==='HIGH'?'pill': 'pill';}
+  set('riskLabel','Risk: '+m.band+' ('+m.probability+'%)');
+  const exp=document.getElementById('riskExplanation');if(exp)exp.textContent='Prototype data-fusion score using rainfall, radar, wetness, drainage, forecast, river state and terrain. It is a surrogate for a future trained/calibrated ML model; not an official probability.';
+  document.querySelectorAll('.zone.z1').forEach(e=>e.innerHTML='🔴 Dibrugarh<br><small>'+m.probability+'% risk</small>');
+  document.querySelectorAll('.zone.z2').forEach(e=>e.innerHTML='🟡 Dhemaji<br><small>'+clamp(Math.round(m.probability*.91),0,100)+'% risk</small>');
+  document.querySelectorAll('.zone.z3').forEach(e=>e.innerHTML='🟢 Majuli<br><small>'+clamp(Math.round(m.probability*.67),0,100)+'% risk</small>');
+  document.querySelectorAll('.forecastBar').forEach((b,i)=>{const vals=[m.probability*.55,m.probability*.68,m.probability*.82,m.probability*.94,m.probability,m.probability*.78];const v=Math.round(clamp(vals[i],5,99));b.style.height=v+'%';const sp=b.querySelector('span');if(sp)sp.textContent=v;});
+}
+function applyConditions(){
+  ['rainfall','radar','soil','drain','forecast','river','terrain'].forEach(k=>{const id=k==='rainfall'?'rainInput':k==='radar'?'radarInput':k==='soil'?'soilInput':k==='drain'?'drainInput':k==='forecast'?'forecastInput':k==='river'?'riverInput':'terrainInput';const e=document.getElementById(id);if(e)state[k]=Number(e.value)||0;});
+  updateModel();logEvent('Conditions applied. Prototype probability recalculated with uncertainty and data-quality indicators.');toast('Model recalculated');
+}
+function resetConditions(){Object.assign(state,{rainfall:118,radar:71,soil:84,drain:82,forecast:96,river:78,terrain:72});['rainInput','radarInput','soilInput','drainInput','forecastInput','riverInput','terrainInput'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.value=[118,71,84,82,96,78,72][i];});updateModel();}
+function simulateStep(){state.rainfall=clamp(state.rainfall+(Math.random()-.48)*10,5,260);state.radar=clamp(state.radar+(Math.random()-.48)*8,5,150);state.soil=clamp(state.soil+(Math.random()-.45)*2,20,100);state.drain=clamp(state.drain+(Math.random()-.55)*2,20,100);state.forecast=clamp(state.forecast+(Math.random()-.48)*10,5,190);state.river=clamp(state.river+(Math.random()-.48)*3,20,120);['rainInput','radarInput','soilInput','drainInput','forecastInput','riverInput'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.value=[state.rainfall,state.radar,state.soil,state.drain,state.forecast,state.river][i].toFixed(1);});updateModel();}
+function startSimulation(){const btn=document.getElementById('runSimulation');if(!btn)return;state.running=!state.running;btn.textContent=state.running?'Stop live simulation':'Start live simulation';if(state.running){simulateStep();state.interval=setInterval(simulateStep,2000);toast('Live scenario simulation started — values are synthetic');}else{clearInterval(state.interval);toast('Simulation stopped');}}
+function generateWarning(){const m=modelScore();const message='DEMO '+(m.band==='HIGH'?'FLOOD WARNING':m.band==='MODERATE'?'FLOOD WATCH':'FLOOD ADVISORY')+': '+m.probability+'% prototype probability ±'+m.uncertainty+'%. Verify official local alerts before action.';logEvent(message);toast(message);}
+function logEvent(t){const box=document.getElementById('eventLog');if(!box)return;const row=document.createElement('div');row.textContent=new Date().toLocaleTimeString()+' — '+t;box.prepend(row);}
+
+function addStatus(t){
+  const box=document.getElementById('submissionStatus');
+  if(!box)return;
+  const row=document.createElement('div');row.textContent=t;box.prepend(row);
+}
+
+function renderMedia(){
+  const list=document.getElementById('mediaList');
+  const count=document.getElementById('mediaCount');
+  if(!list)return;
+  list.innerHTML='';
+  count.textContent=state.media.length+' file'+(state.media.length===1?'':'s');
+
+  state.media.forEach((item,index)=>{
+    const row=document.createElement('div');row.className='media-item';
+    const media=document.createElement(item.type.startsWith('video/')?'video':'img');
+    media.className='media-thumb';media.src=item.url;
+    if(item.type.startsWith('video/')){media.controls=true;media.muted=true;}
+    const meta=document.createElement('div');meta.className='media-meta';
+    meta.innerHTML='<b>'+escapeHtml(item.file.name)+'</b><span class="muted">'+item.type+' · '+formatBytes(item.file.size)+'</span><div class="progress"><i style="width:100%"></i></div>';
+    const remove=document.createElement('button');remove.className='remove';remove.textContent='Remove';
+    remove.onclick=()=>{URL.revokeObjectURL(item.url);state.media.splice(index,1);renderMedia();updateTriage();};
+    row.append(media,meta,remove);list.appendChild(row);
+  });
+  updateTriage();
+}
+function formatBytes(n){
+  if(n<1024)return n+' B';
+  if(n<1024*1024)return (n/1024).toFixed(1)+' KB';
+  if(n<1024*1024*1024)return (n/1024/1024).toFixed(1)+' MB';
+  return (n/1024/1024/1024).toFixed(1)+' GB';
+}
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+function addFiles(fileList){
+  const files=[...fileList];
+  const valid=files.filter(f=>f.type.startsWith('image/')||f.type.startsWith('video/'));
+  valid.forEach(file=>{
+    state.media.push({file,url:URL.createObjectURL(file),type:file.type});
+  });
+  if(valid.length) toast(valid.length+' media file'+(valid.length>1?'s':'')+' added');
+  renderMedia();
+}
+function updateTriage(){
+  const n=state.media.length;
+  const triage=document.getElementById('aiTriage');
+  const fill=document.getElementById('triageFill');
+  if(!triage)return;
+  if(!n){
+    triage.textContent='Upload evidence to start triage.';
+    fill.style.width='0%';return;
+  }
+  const hasVideo=state.media.some(x=>x.type.startsWith('video/'));
+  const score=clamp(55+n*8+(hasVideo?10:0),0,92);
+  const risk=modelScore().probability;
+  triage.innerHTML='<b>'+((risk>=70)?'HIGH':(risk>=45?'MEDIUM':'LOW'))+' priority</b> — '+n+' evidence file(s) received. Prototype triage confidence '+score+'%. Rainfall/inundation context: '+risk+'%.';
+  fill.style.width=score+'%';
+}
+function submitEvidence(){
+  if(!state.media.length){toast('Please upload at least one image or video');return;}
+  const loc=document.getElementById('reportLocation').value.trim()||'Location not provided';
+  const sev=document.getElementById('reportSeverity').value;
+  const notes=document.getElementById('reportNotes').value.trim();
+  addStatus(new Date().toLocaleTimeString()+' — '+sev+' field report submitted from '+loc+' with '+state.media.length+' media file(s).');
+  toast('Field evidence submitted — AI triage started');
+  document.getElementById('reportNotes').value=notes;
+}
+
+let liveWeather=null;
+async function fetchLiveData(){
+ const status=document.getElementById('feedStatus'), btn=document.getElementById('fetchLive');
+ const [coords,name]=document.getElementById('liveLocation').value.split('|');
+ const [lat,lon]=coords.split(',');
+ status.textContent='Loading…';btn.disabled=true;
+ try{
+  const weatherUrl=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=precipitation&forecast_days=2&timezone=auto`;
+  const floodUrl=`https://flood-api.open-meteo.com/v1/flood?latitude=${lat}&longitude=${lon}&daily=river_discharge&forecast_days=7&timezone=auto`;
+  const [wr,fr]=await Promise.all([fetch(weatherUrl),fetch(floodUrl)]);
+  if(!wr.ok) throw new Error('Weather API returned '+wr.status);
+  const w=await wr.json(), f=fr.ok?await fr.json():null;
+  const times=w.hourly.time, vals=w.hourly.precipitation;
+  const now=Date.now(), valid=times.map((t,i)=>({t:new Date(t).getTime(),v:vals[i]})).filter(x=>Number.isFinite(x.v));
+  const past=valid.filter(x=>x.t<=now&&x.t>=now-6*3600000).reduce((a,x)=>a+x.v,0);
+  const next=valid.filter(x=>x.t>now&&x.t<=now+6*3600000).reduce((a,x)=>a+x.v,0);
+  const discharge=f?.daily?.river_discharge?.[0];
+  liveWeather={rainfall:+past.toFixed(1),forecast:+next.toFixed(1),river:Number.isFinite(discharge)?+discharge.toFixed(1):null,name};
+  document.getElementById('liveRain').textContent=past.toFixed(1)+' mm';
+  document.getElementById('liveForecast').textContent=next.toFixed(1)+' mm';
+  document.getElementById('liveRiver').textContent=Number.isFinite(discharge)?discharge.toFixed(1)+' m³/s':'Unavailable for this grid cell';
+  document.getElementById('liveTime').textContent=new Date().toLocaleString();
+  document.getElementById('liveNote').textContent='Weather model values for '+name+'. River discharge is a modelled daily estimate and may represent a nearby river cell; verify against local gauges.';
+  document.getElementById('useLive').disabled=false;state.liveLocation=name;status.textContent='Feed loaded';
+ }catch(err){
+  status.textContent='Unavailable';document.getElementById('liveNote').textContent='Could not load feed: '+err.message+'. Check internet/API availability; manual inputs are unchanged.';
+  toast('Live feed unavailable');
+ }finally{btn.disabled=false;}
+}
+function applyLiveWeather(){
+ if(!liveWeather)return;
+ state.rainfall=clamp(liveWeather.rainfall,0,250);
+ state.forecast=clamp(liveWeather.forecast,0,250);if(liveWeather.river!==null)state.river=clamp(liveWeather.river/2,0,120);
+ document.getElementById('rainInput').value=state.rainfall;
+ document.getElementById('forecastInput').value=state.forecast;
+ updateModel();logEvent('Applied live weather rainfall values for '+liveWeather.name+'. Radar, soil and drainage remain manual.');
+ toast('Weather values applied; review other inputs');
+}
+
+let gisMap=null,gisRiskMarkers=null,gisRainOverlay=null;
+function initGIS(){
+ if(!window.L||gisMap)return;
+ gisMap=L.map('rainshieldGIS').setView([27.1,91.5],6);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(gisMap);
+ gisRiskMarkers=L.layerGroup().addTo(gisMap);
+ const sites=[['Dibrugarh, Assam',27.4728,94.9120],['Dhemaji, Assam',27.4833,94.5833],['Majuli, Assam',26.9500,94.1667],['Biratnagar, Nepal',26.4525,87.2718],['Kathmandu, Nepal',27.7172,85.3240]];
+ sites.forEach((site,i)=>{const factors=[1,.91,.67,.78,.62];const rr=clamp(Math.round(modelScore().probability*factors[i]),0,99);L.marker([site[1],site[2]]).bindPopup('<b>'+site[0]+'</b><br>Prototype cell risk: '+rr+'%<br>Independent demo cell factor; connect local data for production.').addTo(gisRiskMarkers);});
+ gisRainOverlay=L.layerGroup([L.circle([27.47,94.91],{radius:18000,color:'#28d7d0',fillColor:'#28d7d0',fillOpacity:.18}).bindPopup('Illustrative rainfall coverage')]);
+ document.getElementById('gisRiskLayer').onchange=e=>e.target.checked?gisMap.addLayer(gisRiskMarkers):gisMap.removeLayer(gisRiskMarkers);
+ document.getElementById('gisRainLayer').onchange=e=>e.target.checked?gisMap.addLayer(gisRainOverlay):gisMap.removeLayer(gisRainOverlay);
+}
+function runReplay(){
+ const kind=document.getElementById('replayScenario').value;
+ const scenarios={monsoon:{rainfall:220,radar:110,soil:94,drain:70,forecast:180,river:92,terrain:82},river:{rainfall:90,radar:65,soil:90,drain:75,forecast:120,river:112,terrain:78},drain:{rainfall:80,radar:45,soil:75,drain:20,forecast:65,river:78,terrain:72},recovery:{rainfall:25,radar:20,soil:62,drain:82,forecast:18,river:55,terrain:60}};
+ const x=scenarios[kind];Object.assign(state,x);['rainInput','radarInput','soilInput','drainInput','forecastInput','riverInput','terrainInput'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.value=[x.rainfall,x.radar,x.soil,x.drain,x.forecast,x.river,x.terrain][i]});
+ updateModel();const m=modelScore();const out=document.getElementById('replayOutput');out.textContent='Scenario: '+kind+' · prototype probability '+m.probability+'% ('+m.band+') · uncertainty ±'+m.uncertainty+'%. Synthetic scenario; not historical validation.';
+}
+function wire(){
+  const input=document.getElementById('mediaInput');
+  const camera=document.getElementById('cameraInput');
+  const video=document.getElementById('videoInput');
+  input.onchange=e=>addFiles(e.target.files);
+  camera.onchange=e=>addFiles(e.target.files);
+  video.onchange=e=>addFiles(e.target.files);
+  document.getElementById('cameraBtn').onclick=()=>camera.click();
+  document.getElementById('videoBtn').onclick=()=>video.click();
+  document.getElementById('submitEvidence').onclick=submitEvidence;
+  document.getElementById('applyConditions').onclick=applyConditions;
+  document.getElementById('resetConditions').onclick=resetConditions;
+  document.getElementById('fetchLive').onclick=fetchLiveData;
+  document.getElementById('useLive').onclick=applyLiveWeather;
+  const run=document.getElementById('runSimulation');
+  if(run)run.onclick=startSimulation;
+  const warn=document.getElementById('warningBtn');
+  if(warn)warn.onclick=generateWarning;
+  updateModel();
+}
+document.addEventListener('DOMContentLoaded',wire);
+</script>
+
+</body></html>
